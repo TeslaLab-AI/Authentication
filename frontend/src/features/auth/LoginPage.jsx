@@ -192,9 +192,31 @@ export default function LoginPage({ setUser, setGlobalError }) {
         setUser(response.user);
         navigate('/connect');
       } else if (mode === 'signup') {
-        await register({ name, email, password });
-        handleSetMode('signup-otp');
-        setSuccessMsg('Account registered! An OTP code has been sent to your email.');
+        try {
+          await register({ name, email, password });
+          handleSetMode('signup-otp');
+          setSuccessMsg('Account registered! An OTP code has been sent to your email.');
+        } catch (regErr) {
+          if (regErr.message === 'User already exists') {
+            try {
+              const loginResponse = await login({ email, password });
+              const userObj = loginResponse.user || loginResponse;
+              if (!userObj.isVerified) {
+                await sendOtp(email);
+                handleSetMode('signup-otp');
+                setSuccessMsg('Your account is registered but not verified. A new verification code has been sent to your email.');
+              } else {
+                saveToken(loginResponse.token);
+                setUser(userObj);
+                navigate('/connect');
+              }
+            } catch (loginErr) {
+              throw new Error('User already exists. If this is your account, please sign in with your correct password.');
+            }
+          } else {
+            throw regErr;
+          }
+        }
       } else if (mode === 'signup-otp') {
         await verifyOtp(email, otp);
         const response = await login({ email, password });
