@@ -1,9 +1,127 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { login, register, saveToken, forgotPassword, resetPassword, sendOtp, verifyOtp, startGithubAuth } from '../../services/authService.js';
 import { Btn, Input } from '../../ui/primitives.jsx';
 import { TOKENS as T } from '../../theme/tokens.js';
+
+function SplitOtpInput({ value, onChange, error }) {
+  const inputRefs = [
+    useRef(null),
+    useRef(null),
+    useRef(null),
+    useRef(null),
+    useRef(null),
+    useRef(null),
+  ];
+  
+  const [focusedIndex, setFocusedIndex] = useState(-1);
+
+  const handleChange = (e, idx) => {
+    const val = e.target.value;
+    const lastChar = val.substring(val.length - 1);
+    
+    if (lastChar && !/^\d$/.test(lastChar)) {
+      return;
+    }
+
+    const currentDigits = value.split('');
+    currentDigits[idx] = lastChar;
+    const newOtp = currentDigits.join('');
+    
+    onChange(newOtp);
+
+    if (lastChar && idx < 5) {
+      inputRefs[idx + 1].current.focus();
+    }
+  };
+
+  const handleKeyDown = (e, idx) => {
+    if (e.key === 'Backspace') {
+      const currentDigits = value.split('');
+      if (currentDigits[idx]) {
+        currentDigits[idx] = '';
+        onChange(currentDigits.join(''));
+      } else if (idx > 0) {
+        currentDigits[idx - 1] = '';
+        onChange(currentDigits.join(''));
+        inputRefs[idx - 1].current.focus();
+      }
+    } else if (e.key === 'ArrowLeft' && idx > 0) {
+      inputRefs[idx - 1].current.focus();
+    } else if (e.key === 'ArrowRight' && idx < 5) {
+      inputRefs[idx + 1].current.focus();
+    }
+  };
+
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const pasteData = e.clipboardData.getData('text');
+    const digitsOnly = pasteData.replace(/\D/g, '').substring(0, 6);
+    if (digitsOnly) {
+      onChange(digitsOnly);
+      const nextFocusIdx = Math.min(digitsOnly.length, 5);
+      inputRefs[nextFocusIdx].current.focus();
+    }
+  };
+
+  const handleFocus = (idx) => {
+    const firstEmptyIdx = value.length;
+    if (idx > firstEmptyIdx) {
+      const targetIdx = Math.min(firstEmptyIdx, 5);
+      inputRefs[targetIdx].current?.focus();
+    } else {
+      setFocusedIndex(idx);
+    }
+  };
+
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: T.tx2, marginBottom: 8, letterSpacing: '0.02em' }}>
+        6-digit verification code
+      </label>
+      <div style={{ display: 'flex', gap: 10, justifyContent: 'space-between' }}>
+        {Array.from({ length: 6 }).map((_, idx) => {
+          const val = value[idx] || '';
+          const isFocused = focusedIndex === idx;
+          return (
+            <input
+              key={idx}
+              ref={inputRefs[idx]}
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              maxLength={1}
+              value={val}
+              onChange={(e) => handleChange(e, idx)}
+              onKeyDown={(e) => handleKeyDown(e, idx)}
+              onPaste={handlePaste}
+              onFocus={() => handleFocus(idx)}
+              onBlur={() => setFocusedIndex(-1)}
+              style={{
+                width: 50,
+                height: 52,
+                background: T.bg2,
+                border: `1px solid ${error ? T.r : isFocused ? T.p : T.brd}`,
+                borderRadius: 10,
+                fontSize: 20,
+                fontWeight: 700,
+                color: T.tx1,
+                textAlign: 'center',
+                fontFamily: "'JetBrains Mono', monospace",
+                transition: 'border-color .15s, box-shadow .15s',
+                boxShadow: isFocused ? `0 0 0 3px ${T.pl}` : 'none',
+              }}
+            />
+          );
+        })}
+      </div>
+      {error && (
+        <p style={{ fontSize: 12, color: T.r, marginTop: 6, marginBottom: 0 }}>{error}</p>
+      )}
+    </div>
+  );
+}
 
 export default function LoginPage({ setUser, setGlobalError }) {
   const [mode, setMode] = useState('login'); // 'login' | 'signup' | 'signup-otp' | 'forgot' | 'reset'
@@ -75,8 +193,8 @@ export default function LoginPage({ setUser, setGlobalError }) {
         navigate('/connect');
       } else if (mode === 'signup') {
         await register({ name, email, password });
-        setSuccessMsg('Account registered! An OTP code has been sent to your email.');
         handleSetMode('signup-otp');
+        setSuccessMsg('Account registered! An OTP code has been sent to your email.');
       } else if (mode === 'signup-otp') {
         await verifyOtp(email, otp);
         const response = await login({ email, password });
@@ -198,6 +316,15 @@ export default function LoginPage({ setUser, setGlobalError }) {
                 </div>
               )}
 
+              {mode === 'signup-otp' && (
+                <div style={{ background: T.pl, border: `1px solid ${T.brd}`, borderRadius: 12, padding: '12px 14px', fontSize: 12, color: T.pm, lineHeight: 1.5, marginBottom: 20, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                  <span style={{ fontSize: 14, flexShrink: 0 }}>💡</span>
+                  <span>
+                    <strong>Local Testing:</strong> Check the backend server terminal console logs for the simulated OTP code!
+                  </span>
+                </div>
+              )}
+
               <form onSubmit={handleSubmit}>
                 {mode === 'signup' && (
                   <Input label="Full name" placeholder="Rahul Gupta" value={name} onChange={(e) => setName(e.target.value)} error={errors.name} icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>} />
@@ -208,7 +335,7 @@ export default function LoginPage({ setUser, setGlobalError }) {
                 )}
 
                 {(mode === 'signup-otp' || mode === 'reset') && (
-                  <Input label="6-digit verification code" type="text" placeholder="123456" maxLength={6} value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))} error={errors.otp} icon={<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0110 0v4" /></svg>} />
+                  <SplitOtpInput value={otp} onChange={setOtp} error={errors.otp} />
                 )}
 
                 {(mode === 'login' || mode === 'signup' || mode === 'reset') && (
