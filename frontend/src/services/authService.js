@@ -1,6 +1,6 @@
 import api from './axiosInstance.js';
 
-const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const apiBaseUrl = import.meta.env.VITE_API_URL 
 
 export async function login(payload) {
   const response = await api.post('auth/login', payload);
