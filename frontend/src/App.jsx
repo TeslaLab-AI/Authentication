@@ -5,7 +5,7 @@ import LoginPage from './features/auth/LoginPage.jsx';
 import ConnectRepoPage from './features/connect/ConnectRepoPage.jsx';
 import TeslaDashboard from './features/dashboard/TeslaDashboard.jsx';
 import Navbar from './ui/Navbar.jsx';
-import { clearToken, getToken } from './services/authService.js';
+import { clearToken, getToken,saveToken } from './services/authService.js';
 import { getProfile } from './services/userService.js';
 import { GLOBAL_CSS, TOKENS as T } from './theme/tokens.js';
 
