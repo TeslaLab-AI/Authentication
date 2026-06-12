@@ -1,6 +1,16 @@
 import api from './axiosInstance.js';
 
-const apiBaseUrl = import.meta.env.VITE_API_URL
+const getApiUrl = () => {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+    return 'http://localhost:3000/api';
+  }
+  return 'https://backend-server-ai.onrender.com/api';
+};
+
+const apiBaseUrl = getApiUrl();
 
 export async function login(payload) {
   const response = await api.post('auth/login', payload);

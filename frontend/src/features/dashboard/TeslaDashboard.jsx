@@ -50,6 +50,10 @@ export default function TeslaDashboard({ user, setUser, setGlobalError, onLogout
 
         const dashboardResponse = await getDashboard();
         const backendRepos = dashboardResponse.recentRepos || [];
+        if (backendRepos.length === 0) {
+          navigate('/connect');
+          return;
+        }
         const normalizedRepos = backendRepos.map((repo) => {
           const repoName = repo.repoUrl?.split('/').slice(-1)[0] || repo.name || `repo-${repo.id}`;
           const scanAt = dashboardResponse.latestScan?.createdAt || repo.createdAt || new Date().toISOString();
@@ -183,6 +187,15 @@ export default function TeslaDashboard({ user, setUser, setGlobalError, onLogout
               <span style={{ fontSize: 11, color: T.tx4, fontFamily: "'JetBrains Mono', monospace" }}>{r.health}</span>
             </button>
           ))}
+          <button
+            type="button"
+            onClick={() => { navigate('/connect'); setIsSidebarOpen(false); }}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px', borderRadius: 8, border: `1px dashed ${T.pm}`, background: 'transparent', cursor: 'pointer', width: '100%', fontFamily: "'DM Sans', sans-serif", transition: 'background .12s', marginTop: 12, justifyContent: 'center' }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = T.pl; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+          >
+            <span style={{ fontSize: 12, fontWeight: 600, color: T.pm }}>+ Connect Repository</span>
+          </button>
           <Btn variant="danger" size="sm" onClick={onLogout} style={{ width: '100%', justifyContent: 'center', marginTop: 12 }}>
             Logout
           </Btn>
