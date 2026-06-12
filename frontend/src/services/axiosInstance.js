@@ -9,8 +9,10 @@ const api = axios.create({
   timeout: 10000,
 });
 
+import { getToken } from './authService.js';
+
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('auth_token');
+  const token = getToken();
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
   }

@@ -37,13 +37,25 @@ export function startGithubAuth() {
 }
 
 export function saveToken(token) {
-  localStorage.setItem('auth_token', token);
+  document.cookie = `auth_token=${token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
 }
 
 export function clearToken() {
-  localStorage.removeItem('auth_token');
+  document.cookie = `auth_token=; path=/; max-age=0; SameSite=Lax`;
 }
 
 export function getToken() {
-  return localStorage.getItem('auth_token');
+  const name = "auth_token=";
+  const decodedCookie = decodeURIComponent(document.cookie);
+  const ca = decodedCookie.split(';');
+  for(let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) == ' ') {
+      c = c.substring(1);
+    }
+    if (c.indexOf(name) == 0) {
+      return c.substring(name.length, c.length);
+    }
+  }
+  return null;
 }
