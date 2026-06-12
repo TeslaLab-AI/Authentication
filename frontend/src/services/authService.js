@@ -37,10 +37,12 @@ export function startGithubAuth() {
 }
 
 export function saveToken(token) {
+  localStorage.setItem('auth_token', token);
   document.cookie = `auth_token=${token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
 }
 
 export function clearToken() {
+  localStorage.removeItem('auth_token');
   document.cookie = `auth_token=; path=/; max-age=0; SameSite=Lax`;
 }
 
@@ -57,5 +59,5 @@ export function getToken() {
       return c.substring(name.length, c.length);
     }
   }
-  return null;
+  return localStorage.getItem('auth_token');
 }
