@@ -21,7 +21,7 @@ export default function OverviewSection({ userName, repos, prs, metrics, showToa
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 24 }}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         {overviewMetrics.map((m) => (
           <Card key={m.label}>
             <div style={{ fontSize: 11, fontWeight: 600, color: T.tx3, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>{m.label}</div>
@@ -73,13 +73,17 @@ export default function OverviewSection({ userName, repos, prs, metrics, showToa
       </div>
       <Card noPad>
         {(metrics.recentActivity || []).slice(0, 5).map((a, i) => (
-          <div key={a.id || i} style={{ display: 'flex', gap: 12, padding: '12px 18px', borderBottom: i < 4 ? `1px solid ${T.brd}` : 'none', alignItems: 'flex-start' }}>
-            <div style={{ width: 32, height: 32, borderRadius: 9, background: T.bg3, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>{a.icon}</div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: T.tx1 }}>{a.title}</div>
-              <div style={{ fontSize: 12, color: T.tx3, marginTop: 2 }}>{a.sub}</div>
+          <div key={a.id || i} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3" style={{ padding: '12px 18px', borderBottom: i < 4 ? `1px solid ${T.brd}` : 'none' }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start', flex: 1, minWidth: 0 }}>
+              <div style={{ width: 32, height: 32, borderRadius: 9, background: T.bg3, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>{a.icon}</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: T.tx1, wordBreak: 'break-all' }}>{a.title}</div>
+                <div style={{ fontSize: 12, color: T.tx3, marginTop: 2, wordBreak: 'break-word' }}>{a.sub}</div>
+              </div>
             </div>
-            <div style={{ fontSize: 11, color: T.tx4, whiteSpace: 'nowrap' }}>{new Date(a.time).toLocaleString()}</div>
+            <div className="text-[11px] text-[#52525B] whitespace-nowrap self-start sm:self-auto pl-11 sm:pl-0">
+              {new Date(a.time).toLocaleString()}
+            </div>
           </div>
         ))}
       </Card>

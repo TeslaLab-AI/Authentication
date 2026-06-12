@@ -169,16 +169,16 @@ export default function ConnectRepoPage() {
       <h1 style={{ fontFamily: "'Syne', sans-serif", fontSize: 28, fontWeight: 700, color: T.tx1, margin: '0 0 10px', letterSpacing: '-0.02em' }}>Connect your GitHub repository</h1>
       <p style={{ color: T.tx3, fontSize: 14, marginBottom: 24 }}>Fetch real repository data from GitHub, verify your Gmail, and choose the repo to connect with the dashboard.</p>
 
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 30, flexWrap: 'wrap', gap: 8 }}>
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-3 mb-[30px]">
         {steps.map((s, i) => (
-          <div key={s.n} style={{ display: 'flex', alignItems: 'center', flex: i < steps.length - 1 ? 1 : 0, minWidth: 140 }}>
+          <div key={s.n} className={i < steps.length - 1 ? "flex-1 min-w-[120px] flex items-center" : "flex items-center"}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{ width: 28, height: 28, borderRadius: '50%', background: s.done ? T.g : s.active ? T.p : T.bg3, border: `2px solid ${s.done ? T.g : s.active ? T.p : T.brd}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: s.done || s.active ? '#fff' : T.tx4, flexShrink: 0 }}>
                 {s.done ? '✓' : s.n}
               </div>
               <span style={{ fontSize: 12, fontWeight: 500, color: s.done ? T.g : s.active ? T.pm : T.tx4, whiteSpace: 'nowrap' }}>{s.label}</span>
             </div>
-            {i < steps.length - 1 && <div style={{ flex: 1, height: 2, background: s.done ? T.g : T.bg3, margin: '0 12px', borderRadius: 1, minWidth: 24 }} />}
+            {i < steps.length - 1 && <div className="hidden sm:block flex-1 h-[2px] mx-3" style={{ background: s.done ? T.g : T.bg3, borderRadius: 1 }} />}
           </div>
         ))}
       </div>
@@ -266,15 +266,15 @@ export default function ConnectRepoPage() {
                   const isSel = selected?.id === repo.id;
                   return (
                     <motion.div key={repo.id} whileHover={{ scale: 1.005 }} whileTap={{ scale: 0.997 }}>
-                      <div onClick={() => setSelected(repo)} style={{ padding: '14px 18px', borderRadius: 14, background: isSel ? T.pl : T.bg2, border: `1px solid ${isSel ? T.p : T.brd}`, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', transition: 'all .15s' }}>
-                        <div>
+                      <div onClick={() => setSelected(repo)} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3" style={{ padding: '14px 18px', borderRadius: 14, background: isSel ? T.pl : T.bg2, border: `1px solid ${isSel ? T.p : T.brd}`, cursor: 'pointer', transition: 'all .15s' }}>
+                        <div style={{ minWidth: 0 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <span style={{ fontWeight: 600, fontSize: 14, color: isSel ? T.pm : T.tx1 }}>{repo.name}</span>
+                            <span style={{ fontWeight: 600, fontSize: 14, color: isSel ? T.pm : T.tx1, wordBreak: 'break-all' }}>{repo.name}</span>
                             {repo.private && <Badge variant="red" size="xs">Private</Badge>}
                           </div>
-                          <div style={{ fontSize: 12, color: T.tx3, marginTop: 4 }}>{repo.description || 'No description available'}</div>
+                          <div style={{ fontSize: 12, color: T.tx3, marginTop: 4, wordBreak: 'break-word' }}>{repo.description || 'No description available'}</div>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div className="flex items-center gap-[10px] self-start sm:self-auto">
                           <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 5, fontWeight: 500, background: lc.bg, color: lc.color }}>{repo.language || 'Unknown'}</span>
                           <span style={{ fontSize: 11, color: T.tx4 }}>★ {repo.stargazers_count || 0}</span>
                         </div>

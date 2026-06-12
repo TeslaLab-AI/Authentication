@@ -80,7 +80,7 @@ function SplitOtpInput({ value, onChange, error }) {
       <label style={{ display: 'block', fontSize: 12, fontWeight: 500, color: T.tx2, marginBottom: 8, letterSpacing: '0.02em' }}>
         6-digit verification code
       </label>
-      <div style={{ display: 'flex', gap: 10, justifyContent: 'space-between' }}>
+      <div className="flex gap-1.5 sm:gap-2.5 justify-between">
         {Array.from({ length: 6 }).map((_, idx) => {
           const val = value[idx] || '';
           const isFocused = focusedIndex === idx;
@@ -98,9 +98,8 @@ function SplitOtpInput({ value, onChange, error }) {
               onPaste={handlePaste}
               onFocus={() => handleFocus(idx)}
               onBlur={() => setFocusedIndex(-1)}
+              className="w-full max-w-[50px] aspect-square sm:aspect-auto sm:h-[52px]"
               style={{
-                width: 50,
-                height: 52,
                 background: T.bg2,
                 border: `1px solid ${error ? T.r : isFocused ? T.p : T.brd}`,
                 borderRadius: 10,
@@ -268,8 +267,8 @@ export default function LoginPage({ setUser, setGlobalError }) {
   ];
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', minHeight: 'calc(100vh - 56px)' }}>
-      <div style={{ background: `radial-gradient(ellipse at 20% 80%, ${T.pl} 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, ${T.pl} 0%, transparent 60%), ${T.bg1}`, padding: '4rem 3.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', borderRight: `1px solid ${T.brd}`, position: 'relative', overflow: 'hidden' }}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="grid grid-cols-1 lg:grid-cols-2" style={{ minHeight: 'calc(100vh - 56px)' }}>
+      <div className="hidden lg:flex flex-col justify-between relative overflow-hidden" style={{ background: `radial-gradient(ellipse at 20% 80%, ${T.pl} 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, ${T.pl} 0%, transparent 60%), ${T.bg1}`, padding: '4rem 3.5rem', borderRight: `1px solid ${T.brd}` }}>
         <div style={{ position: 'absolute', inset: 0, backgroundImage: `radial-gradient(${T.brd} 1px, transparent 1px)`, backgroundSize: '32px 32px', opacity: 0.4 }} />
         <div style={{ position: 'relative', zIndex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '2rem' }}>

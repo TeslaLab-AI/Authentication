@@ -32,7 +32,7 @@ export default function HealthSection({ repos, repo, setRepo, showToast }) {
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 14, marginBottom: 14 }}>
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-3.5 mb-3.5">
         <Card style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: '28px 20px' }}>
           <ScoreRing score={repo.health} size={130} />
           <div style={{ textAlign: 'center' }}>
@@ -57,7 +57,7 @@ export default function HealthSection({ repos, repo, setRepo, showToast }) {
         </Card>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 mb-3.5">
         <Card>
           <div style={{ fontSize: 13, fontWeight: 600, color: T.tx2, marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span>Security vulnerabilities ({repo.sec})</span>
@@ -120,7 +120,7 @@ export default function HealthSection({ repos, repo, setRepo, showToast }) {
         </Card>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
         <Card>
           <div style={{ fontSize: 13, fontWeight: 600, color: T.tx2, marginBottom: 12 }}>Lint issues ({repo.lint})</div>
           {repo.lint > 0 ? (

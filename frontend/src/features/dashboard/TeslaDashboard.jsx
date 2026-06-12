@@ -23,6 +23,7 @@ export default function TeslaDashboard({ user, setUser, setGlobalError, onLogout
   const [metrics, setMetrics] = useState({ reposCount: 0, openPRs: 0, mergedPRs: 0, avgHealth: 0, issuesResolved: 0, recentActivity: [], activityFeed: [] });
   const [activeRepo, setActiveRepo] = useState(null);
   const [toast, setToast] = useState(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const navigate = useNavigate();
 
   const showToast = useCallback((msg) => {
@@ -138,8 +139,12 @@ export default function TeslaDashboard({ user, setUser, setGlobalError, onLogout
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: 'calc(100vh - 56px)' }}>
-      <aside style={{ width: 220, flexShrink: 0, borderRight: `1px solid ${T.brd}`, background: T.bg1, padding: '16px 8px', display: 'flex', flexDirection: 'column', position: 'sticky', top: 56, height: 'calc(100vh - 56px)', overflowY: 'auto' }}>
+    <div style={{ minHeight: 'calc(100vh - 56px)' }} className="flex flex-col lg:flex-row relative">
+      {/* Sidebar drawer */}
+      <aside
+        className={`fixed lg:sticky top-[56px] left-0 z-40 w-[220px] bg-[#0F0F12] border-r border-[#27272A] flex flex-col transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
+        style={{ height: 'calc(100vh - 56px)', padding: '16px 8px', overflowY: 'auto' }}
+      >
         <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {navItems.map((n) => {
             const isActive = section === n.key;
@@ -147,7 +152,7 @@ export default function TeslaDashboard({ user, setUser, setGlobalError, onLogout
               <button
                 key={n.key}
                 type="button"
-                onClick={() => setSection(n.key)}
+                onClick={() => { setSection(n.key); setIsSidebarOpen(false); }}
                 style={{ display: 'flex', alignItems: 'center', gap: 9, padding: '8px 12px', borderRadius: 9, background: isActive ? T.pl : 'transparent', border: 'none', cursor: 'pointer', color: isActive ? T.pm : T.tx3, fontSize: 13, fontWeight: 500, transition: 'all .12s', textAlign: 'left', fontFamily: "'DM Sans', sans-serif" }}
                 onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = T.bg2; }}
                 onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
@@ -168,7 +173,7 @@ export default function TeslaDashboard({ user, setUser, setGlobalError, onLogout
             <button
               key={r.id}
               type="button"
-              onClick={() => { setActiveRepo(r); setSection('health'); }}
+              onClick={() => { setActiveRepo(r); setSection('health'); setIsSidebarOpen(false); }}
               style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', borderRadius: 8, border: 'none', background: activeRepo?.id === r.id && section === 'health' ? T.bg2 : 'transparent', cursor: 'pointer', width: '100%', fontFamily: "'DM Sans', sans-serif", transition: 'background .12s' }}
               onMouseEnter={(e) => { e.currentTarget.style.background = T.bg2; }}
               onMouseLeave={(e) => { if (!(activeRepo?.id === r.id && section === 'health')) e.currentTarget.style.background = 'transparent'; }}
@@ -184,29 +189,57 @@ export default function TeslaDashboard({ user, setUser, setGlobalError, onLogout
         </div>
       </aside>
 
-      <main style={{ flex: 1, overflowY: 'auto', background: T.bg0, padding: '24px 28px' }}>
-        {profile && !profile.isVerified && (
-          <div style={{ background: T.al, border: `1px solid ${T.a}`, borderRadius: 12, padding: '10px 16px', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 16 }}>⚠️</span>
-              <span style={{ fontSize: 13, color: T.tx2 }}>Your email address is unverified. Verify it to unlock all features.</span>
-            </div>
-            <button onClick={() => setSection('settings')} style={{ background: T.a, border: 'none', borderRadius: 8, color: '#fff', fontSize: 11, fontWeight: 600, padding: '5px 12px', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
-              Verify now
-            </button>
-          </div>
-        )}
+      {/* Sidebar Backdrop Overlay on Mobile */}
+      {isSidebarOpen && (
+        <div
+          onClick={() => setIsSidebarOpen(false)}
+          className="fixed inset-0 top-[56px] bg-black/60 backdrop-blur-sm z-30 lg:hidden"
+        />
+      )}
 
-        <AnimatePresence mode="wait">
-          <motion.div key={section} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }}>
-            {section === 'overview' && <OverviewSection userName={displayName} repos={repos} prs={prs} metrics={metrics} showToast={showToast} setSection={setSection} setActiveRepo={setActiveRepo} />}
-            {section === 'prs' && <PRsSection prs={prs} approvePR={approvePR} />}
-            {section === 'health' && <HealthSection repos={repos} repo={activeRepo} setRepo={setActiveRepo} showToast={showToast} />}
-            {section === 'activity' && <ActivitySection activities={activities} />}
-            {section === 'settings' && <SettingsSection showToast={showToast} profile={profile} />}
-          </motion.div>
-        </AnimatePresence>
-      </main>
+      {/* Main Container */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Mobile Sub-Header */}
+        <div className="flex lg:hidden items-center justify-between px-4 py-3 border-b border-[#27272A] bg-[#0F0F12] sticky top-[56px] z-20">
+          <button
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+            className="flex items-center gap-2 text-[13px] font-medium text-[#A1A1AA] hover:text-[#FAFAF9]"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+            <span>Dashboard Menu</span>
+          </button>
+          <span style={{ fontSize: 11, fontWeight: 700, color: T.pm, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{section}</span>
+        </div>
+
+        <main className="p-4 sm:p-7" style={{ flex: 1, overflowY: 'auto', background: T.bg0 }}>
+          {profile && !profile.isVerified && (
+            <div style={{ background: T.al, border: `1px solid ${T.a}`, borderRadius: 12, padding: '10px 16px', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ fontSize: 16 }}>⚠️</span>
+                <span style={{ fontSize: 13, color: T.tx2 }}>Your email address is unverified. Verify it to unlock all features.</span>
+              </div>
+              <button onClick={() => setSection('settings')} style={{ background: T.a, border: 'none', borderRadius: 8, color: '#fff', fontSize: 11, fontWeight: 600, padding: '5px 12px', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
+                Verify now
+              </button>
+            </div>
+          )}
+
+          <AnimatePresence mode="wait">
+            <motion.div key={section} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }}>
+              {section === 'overview' && <OverviewSection userName={displayName} repos={repos} prs={prs} metrics={metrics} showToast={showToast} setSection={setSection} setActiveRepo={setActiveRepo} />}
+              {section === 'prs' && <PRsSection prs={prs} approvePR={approvePR} />}
+              {section === 'health' && <HealthSection repos={repos} repo={activeRepo} setRepo={setActiveRepo} showToast={showToast} />}
+              {section === 'activity' && <ActivitySection activities={activities} />}
+              {section === 'settings' && <SettingsSection showToast={showToast} profile={profile} />}
+            </motion.div>
+          </AnimatePresence>
+        </main>
+      </div>
 
       <AnimatePresence>
         {toast && (

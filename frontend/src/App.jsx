@@ -70,7 +70,8 @@ export default function App() {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          style={{ position: 'fixed', top: 70, right: 20, zIndex: 1000, background: T.rl, border: `1px solid ${T.r}`, borderRadius: 12, padding: '12px 16px', fontSize: 13, fontWeight: 500, color: '#FCA5A5', maxWidth: 400, boxShadow: '0 8px 32px rgba(0,0,0,.4)', backdropFilter: 'blur(8px)', cursor: 'pointer' }}
+          className="fixed top-[70px] left-4 right-4 sm:left-auto sm:right-5 sm:max-w-[400px] z-[1000]"
+          style={{ background: T.rl, border: `1px solid ${T.r}`, borderRadius: 12, padding: '12px 16px', fontSize: 13, fontWeight: 500, color: '#FCA5A5', boxShadow: '0 8px 32px rgba(0,0,0,.4)', backdropFilter: 'blur(8px)', cursor: 'pointer' }}
           onClick={() => setGlobalError('')}
         >
           ⚠️ {globalError}

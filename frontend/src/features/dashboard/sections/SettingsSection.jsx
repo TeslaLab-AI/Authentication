@@ -59,7 +59,7 @@ export default function SettingsSection({ showToast, profile }) {
       <div style={{ maxWidth: 600 }}>
         {profile && (
           <Card style={{ marginBottom: 10 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-3">
               <div>
                 <div style={{ fontSize: 14, fontWeight: 600, color: T.tx1, marginBottom: 4 }}>Account Info</div>
                 <div style={{ fontSize: 13, color: T.tx2 }}>{profile.name}</div>
@@ -73,7 +73,7 @@ export default function SettingsSection({ showToast, profile }) {
             {!verified && (
               <div style={{ marginTop: 12, borderTop: `1px solid ${T.brd}`, paddingTop: 12 }}>
                 {!verifying ? (
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <span style={{ fontSize: 12, color: T.tx3 }}>Verify email to secure your account.</span>
                     <Btn size="sm" onClick={handleStartVerification} loading={otpLoading}>
                       Verify now
@@ -82,7 +82,7 @@ export default function SettingsSection({ showToast, profile }) {
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                     <div style={{ fontSize: 12, color: T.tx2 }}>Enter the 6-digit code sent to your email:</div>
-                    <div style={{ display: 'flex', gap: 8 }}>
+                    <div className="flex flex-wrap items-center gap-2">
                       <input
                         type="text"
                         placeholder="123456"
@@ -112,12 +112,12 @@ export default function SettingsSection({ showToast, profile }) {
         )}
 
         <Card style={{ marginBottom: 10 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <div style={{ fontSize: 14, fontWeight: 600, color: T.tx1 }}>Scan schedule</div>
               <div style={{ fontSize: 12, color: T.tx3, marginTop: 3 }}>How often your AI engineer scans each repo for issues</div>
             </div>
-            <select value={scanSchedule} onChange={(e) => setScanSchedule(e.target.value)} style={{ padding: '7px 12px', background: T.bg3, border: `1px solid ${T.brd}`, borderRadius: 8, fontSize: 13, color: T.tx1, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
+            <select value={scanSchedule} onChange={(e) => setScanSchedule(e.target.value)} className="w-full sm:w-auto" style={{ padding: '7px 12px', background: T.bg3, border: `1px solid ${T.brd}`, borderRadius: 8, fontSize: 13, color: T.tx1, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
               <option value="daily">Daily (recommended)</option>
               <option value="weekly">Weekly</option>
               <option value="manual">Manual only</option>
@@ -130,10 +130,10 @@ export default function SettingsSection({ showToast, profile }) {
           { label: 'Email notifications', desc: 'Get notified when PRs are raised or health score changes significantly', val: emailNotifs, set: setEmailNotifs },
         ].map((s) => (
           <Card key={s.label} style={{ marginBottom: 10 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
+            <div className="flex justify-between items-center gap-4">
+              <div className="min-w-0 flex-1">
                 <div style={{ fontSize: 14, fontWeight: 600, color: T.tx1 }}>{s.label}</div>
-                <div style={{ fontSize: 12, color: T.tx3, marginTop: 3 }}>{s.desc}</div>
+                <div style={{ fontSize: 12, color: T.tx3, marginTop: 3, wordBreak: 'break-word' }}>{s.desc}</div>
               </div>
               <div onClick={() => s.set(!s.val)} style={{ width: 44, height: 24, background: s.val ? T.p : T.bg3, border: `1px solid ${s.val ? T.p2 : T.brd}`, borderRadius: 12, cursor: 'pointer', position: 'relative', transition: 'all .2s', flexShrink: 0 }}>
                 <div style={{ width: 18, height: 18, background: '#fff', borderRadius: '50%', position: 'absolute', top: 2, left: s.val ? 23 : 3, transition: 'left .2s', boxShadow: '0 1px 4px rgba(0,0,0,.4)' }} />
@@ -143,12 +143,12 @@ export default function SettingsSection({ showToast, profile }) {
         ))}
 
         <Card style={{ marginBottom: 10 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <div style={{ fontSize: 14, fontWeight: 600, color: T.tx1 }}>Alert threshold</div>
               <div style={{ fontSize: 12, color: T.tx3, marginTop: 3 }}>Only notify for issues above this severity level</div>
             </div>
-            <select value={threshold} onChange={(e) => setThreshold(e.target.value)} style={{ padding: '7px 12px', background: T.bg3, border: `1px solid ${T.brd}`, borderRadius: 8, fontSize: 13, color: T.tx1, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
+            <select value={threshold} onChange={(e) => setThreshold(e.target.value)} className="w-full sm:w-auto" style={{ padding: '7px 12px', background: T.bg3, border: `1px solid ${T.brd}`, borderRadius: 8, fontSize: 13, color: T.tx1, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
               <option value="all">All issues</option>
               <option value="high">High + Critical</option>
               <option value="critical">Critical only</option>
@@ -157,11 +157,11 @@ export default function SettingsSection({ showToast, profile }) {
         </Card>
 
         <Card style={{ background: T.pl, borderColor: T.p, marginTop: 24 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
             <div>
               <div style={{ fontSize: 14, fontWeight: 700, color: T.pm }}>Solo plan — Rs.999/month</div>
               <div style={{ fontSize: 12, color: T.tx3, marginTop: 4 }}>2/3 repos used · Next billing June 1, 2026</div>
-              <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+              <div className="flex flex-wrap gap-2 mt-2.5">
                 <Btn size="sm" onClick={() => showToast('Opening upgrade page…')}>Upgrade to Startup</Btn>
                 <Btn variant="ghost" size="sm" onClick={() => showToast('Managing billing…')}>Manage billing</Btn>
               </div>
