@@ -1,13 +1,27 @@
 import api from './axiosInstance.js';
 
+
 const getApiUrl = () => {
+  let url;
+
   if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL;
+    url = import.meta.env.VITE_API_URL;
+  } else if (
+    typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ) {
+    url = 'http://localhost:3000/api';
+  } else {
+    url = 'https://github-backend-server-ai.onrender.com/api';
   }
-  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-    return 'http://localhost:3000/api';
+
+  // Strip any trailing slash, then ensure it ends with /api exactly once
+  url = url.replace(/\/+$/, '');
+  if (!url.endsWith('/api')) {
+    url = `${url}/api`;
   }
-  return 'https://backend-server-ai.onrender.com/api';
+
+  return url;
 };
 
 const apiBaseUrl = getApiUrl();
@@ -57,15 +71,15 @@ export function clearToken() {
 }
 
 export function getToken() {
-  const name = "auth_token=";
+  const name = 'auth_token=';
   const decodedCookie = decodeURIComponent(document.cookie);
   const ca = decodedCookie.split(';');
-  for(let i = 0; i < ca.length; i++) {
+  for (let i = 0; i < ca.length; i++) {
     let c = ca[i];
-    while (c.charAt(0) == ' ') {
+    while (c.charAt(0) === ' ') {
       c = c.substring(1);
     }
-    if (c.indexOf(name) == 0) {
+    if (c.indexOf(name) === 0) {
       return c.substring(name.length, c.length);
     }
   }

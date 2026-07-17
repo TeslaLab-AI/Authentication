@@ -189,7 +189,7 @@ export default function LoginPage({ setUser, setGlobalError }) {
         const response = await login({ email, password });
         saveToken(response.token);
         setUser(response.user);
-        navigate('/connect');
+        navigate('/connect', { replace: true });
       } else if (mode === 'signup') {
         try {
           await register({ name, email, password });
@@ -207,7 +207,7 @@ export default function LoginPage({ setUser, setGlobalError }) {
               } else {
                 saveToken(loginResponse.token);
                 setUser(userObj);
-                navigate('/connect');
+                navigate('/connect', { replace: true });
               }
             } catch (loginErr) {
               throw new Error('User already exists. If this is your account, please sign in with your correct password.');
@@ -221,7 +221,7 @@ export default function LoginPage({ setUser, setGlobalError }) {
         const response = await login({ email, password });
         saveToken(response.token);
         setUser(response.user);
-        navigate('/connect');
+        navigate('/connect', { replace: true });
       } else if (mode === 'forgot') {
         await forgotPassword(email);
         setSuccessMsg('Password reset code sent to your email.');
@@ -260,7 +260,7 @@ export default function LoginPage({ setUser, setGlobalError }) {
   const features = [
     'Autonomous bug detection & auto-fix pull requests',
     'Dependency upgrade PRs raised automatically',
-    'Security vulnerability scanning — CVE, OSV, npm audit',
+    'Autonomous Security vulnerability scanning and Fixing',
     'Repo health score (0–100), tracked over time',
     'Human approval layer — nothing merges without you',
     'JWT-secured authentication with your backend',
@@ -302,7 +302,7 @@ export default function LoginPage({ setUser, setGlobalError }) {
         </div>
         <div style={{ position: 'relative', zIndex: 1 }}>
           <div style={{ display: 'flex', gap: 16, marginTop: '2rem' }}>
-            {[['1,000+', 'Developers'], ['50+', 'Paying customers'], ['3,200+', 'PRs raised']].map(([v, l]) => (
+            {[['', 'Developers'], ['', 'Paying customers'], ['', 'PRs raised']].map(([v, l]) => (
               <div key={l}>
                 <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 18, fontWeight: 600, color: T.tx1 }}>{v}</div>
                 <div style={{ fontSize: 11, color: T.tx3, marginTop: 2 }}>{l}</div>
