@@ -106,7 +106,7 @@ export default function ConnectRepoPage() {
         if (i >= scanSteps.length) {
           clearInterval(iv);
           setTimeout(() => setPhase('done'), 500);
-          setTimeout(() => navigate('/dashboard'), 1400);
+          setTimeout(() => navigate('/dashboard', { replace: true }), 1400);
         }
       }, 850);
       return () => clearInterval(iv);
@@ -166,6 +166,19 @@ export default function ConnectRepoPage() {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ maxWidth: 760, margin: '0 auto', padding: '3rem 1.5rem' }}>
+      <button
+        type="button"
+        onClick={() => navigate(-1)}
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', color: T.tx3, cursor: 'pointer', fontSize: 13, fontWeight: 500, padding: 0, marginBottom: 20, fontFamily: "'DM Sans', sans-serif", transition: 'color 0.15s' }}
+        onMouseEnter={(e) => e.currentTarget.style.color = T.tx1}
+        onMouseLeave={(e) => e.currentTarget.style.color = T.tx3}
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        Back
+      </button>
       <h1 style={{ fontFamily: "'Syne', sans-serif", fontSize: 28, fontWeight: 700, color: T.tx1, margin: '0 0 10px', letterSpacing: '-0.02em' }}>Connect your GitHub repository</h1>
       <p style={{ color: T.tx3, fontSize: 14, marginBottom: 24 }}>Fetch real repository data from GitHub, verify your Gmail, and choose the repo to connect with the dashboard.</p>
 

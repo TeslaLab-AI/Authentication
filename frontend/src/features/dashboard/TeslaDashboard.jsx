@@ -230,6 +230,21 @@ export default function TeslaDashboard({ user, setUser, setGlobalError, onLogout
         </div>
 
         <main className="p-4 sm:p-7" style={{ flex: 1, overflowY: 'auto', background: T.bg0 }}>
+          {section !== 'overview' && (
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', color: T.tx3, cursor: 'pointer', fontSize: 13, fontWeight: 500, padding: 0, marginBottom: 16, fontFamily: "'DM Sans', sans-serif", transition: 'color 0.15s' }}
+              onMouseEnter={(e) => e.currentTarget.style.color = T.tx1}
+              onMouseLeave={(e) => e.currentTarget.style.color = T.tx3}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+              </svg>
+              Back
+            </button>
+          )}
           {profile && !profile.isVerified && (
             <div style={{ background: T.al, border: `1px solid ${T.a}`, borderRadius: 12, padding: '10px 16px', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
