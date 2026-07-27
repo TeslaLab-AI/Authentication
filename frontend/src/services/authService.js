@@ -5,6 +5,8 @@ const getApiUrl = () => {
   let url;
 
   if (import.meta.env.VITE_API_URL) {
+    console.log("use envfile urls");
+    
     url = import.meta.env.VITE_API_URL;
   } else if (
     typeof window !== 'undefined' &&
