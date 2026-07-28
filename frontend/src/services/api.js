@@ -1,14 +1,6 @@
-const getApiUrl = () => {
-  if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL;
-  }
-  if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-    return 'http://localhost:3000/api';
-  }
-  return 'https://backend-server-ai.onrender.com/api';
-};
+import { apiBaseUrl } from './config.js';
 
-const baseUrl = getApiUrl();
+const baseUrl = apiBaseUrl;
 console.log(
   "VITE_API_URL:",
   import.meta.env.VITE_API_URL
@@ -25,7 +17,8 @@ async function request(endpoint, method = 'GET', body = null, token = null) {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${baseUrl}${endpoint}`, {
+  const cleanEndpoint = endpoint ? `/${String(endpoint).replace(/^\/+/, '')}` : '';
+  const response = await fetch(`${baseUrl}${cleanEndpoint}`, {
     method,
     headers,
     credentials: 'include',

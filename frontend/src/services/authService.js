@@ -1,61 +1,68 @@
 import api from './axiosInstance.js';
-
-
-const getApiUrl = () => {
-  let url;
-
-  if (import.meta.env.VITE_API_URL) {
-    console.log("use envfile urls");
-    
-    url = import.meta.env.VITE_API_URL;
-  } else if (
-    typeof window !== 'undefined' &&
-    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-  ) {
-    url = 'http://localhost:3000/api';
-  } else {
-    url = 'https://github-backend-server-ai.onrender.com/api';
-  }
-
-  // Strip any trailing slash, then ensure it ends with /api exactly once
-  url = url.replace(/\/+$/, '');
-  if (!url.endsWith('/api')) {
-    url = `${url}/api`;
-  }
-
-  return url;
-};
-
-const apiBaseUrl = getApiUrl();
+import { apiBaseUrl } from './config.js';
 
 export async function login(payload) {
-  const response = await api.post('auth/login', payload);
-  return response.data;
+  try {
+    console.log('authService.login payload:', payload);
+    const response = await api.post('auth/login', payload);
+    console.log('authService.login response:', response.data);
+    return response.data;
+  } catch (err) {
+    console.error('authService.login error response:', err.response?.data || err.message);
+    throw err;
+  }
 }
 
 export async function register(payload) {
-  const response = await api.post('auth/register', payload);
-  return response.data;
+  try {
+    console.log('authService.register payload:', payload);
+    const response = await api.post('auth/register', payload);
+    console.log('authService.register response:', response.data);
+    return response.data;
+  } catch (err) {
+    console.error('authService.register error response:', err.response?.data || err.message);
+    throw err;
+  }
 }
 
 export async function sendOtp(email) {
-  const response = await api.post('auth/send-otp', { email });
-  return response.data;
+  try {
+    const response = await api.post('auth/send-otp', { email });
+    return response.data;
+  } catch (err) {
+    console.error('authService.sendOtp error response:', err.response?.data || err.message);
+    throw err;
+  }
 }
 
 export async function verifyOtp(email, otp) {
-  const response = await api.post('auth/verify-otp', { email, otp });
-  return response.data;
+  try {
+    const response = await api.post('auth/verify-otp', { email, otp });
+    return response.data;
+  } catch (err) {
+    console.error('authService.verifyOtp error response:', err.response?.data || err.message);
+    throw err;
+  }
 }
 
 export async function forgotPassword(email) {
-  const response = await api.post('auth/forgot-password', { email });
-  return response.data;
+  try {
+    const response = await api.post('auth/forgot-password', { email });
+    return response.data;
+  } catch (err) {
+    console.error('authService.forgotPassword error response:', err.response?.data || err.message);
+    throw err;
+  }
 }
 
 export async function resetPassword(email, otp, newPassword) {
-  const response = await api.post('auth/reset-password', { email, otp, newPassword });
-  return response.data;
+  try {
+    const response = await api.post('auth/reset-password', { email, otp, newPassword });
+    return response.data;
+  } catch (err) {
+    console.error('authService.resetPassword error response:', err.response?.data || err.message);
+    throw err;
+  }
 }
 
 export function startGithubAuth() {

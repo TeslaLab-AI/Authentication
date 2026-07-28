@@ -192,7 +192,10 @@ export default function LoginPage({ setUser, setGlobalError }) {
         navigate('/connect', { replace: true });
       } else if (mode === 'signup') {
         try {
-          await register({ name, email, password });
+          const registerclicked = await register({ name, email, password });
+
+          console.log("",registerclicked);
+          
           handleSetMode('signup-otp');
           setSuccessMsg('Account registered! An OTP code has been sent to your email.');
         } catch (regErr) {
