@@ -14,10 +14,7 @@ const getApiUrl = () => {
 
   url = url.replace(/\/+$/, '');
   if (!url.endsWith('/api')) {
-    url = `${url}/api/`;
-  } else if (url.endsWith('/api')) {
-    // ensure trailing slash so axios concatenation works when endpoints don't start with '/'
-    url = `${url}/`;
+    url = `${url}/api`;
   }
   return url;
 };
