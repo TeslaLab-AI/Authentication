@@ -9,3 +9,8 @@ export async function getRepos() {
   const response = await api.get('repos/my-repos');
   return response.data;
 }
+
+export async function queueScan(repositoryId, repoUrl) {
+  const response = await api.post('repos/queue-scan', { repositoryId, repoUrl });
+  return response.data;
+}

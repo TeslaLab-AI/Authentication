@@ -1,7 +1,25 @@
+import { useState } from 'react';
 import { Card, Btn, Badge, ScoreRing } from '../../../ui/primitives.jsx';
 import { TOKENS as T } from '../../../theme/tokens.js';
+import { queueScan } from '../../../services/repoService.js';
 
 export default function HealthSection({ repos, repo, setRepo, showToast }) {
+  const [scanning, setScanning] = useState(false);
+
+  const handleScanNow = async () => {
+    if (!repo || scanning) return;
+    setScanning(true);
+    showToast(`Scanning ${repo.name}…`);
+    try {
+      await queueScan(repo.id, repo.repoUrl);
+      showToast(`Scan queued for ${repo.name}. Refresh in a bit to see results.`);
+    } catch (err) {
+      showToast(err.message || 'Failed to start scan');
+    } finally {
+      setScanning(false);
+    }
+  };
+
   if (!repo) {
     return (
       <div style={{ padding: '24px', color: T.tx3 }}>
@@ -41,7 +59,7 @@ export default function HealthSection({ repos, repo, setRepo, showToast }) {
             </div>
             <div style={{ fontSize: 12, color: T.tx3, marginTop: 4 }}>Scanned {repo.scan}</div>
           </div>
-          <Btn variant="secondary" size="sm" onClick={() => showToast(`Scanning ${repo.name}…`)}>Scan now</Btn>
+          <Btn variant="secondary" size="sm" onClick={handleScanNow} disabled={scanning}>{scanning ? 'Scanning…' : 'Scan now'}</Btn>
         </Card>
         <Card>
           <div style={{ fontSize: 13, fontWeight: 600, color: T.tx2, marginBottom: 16 }}>Score breakdown</div>

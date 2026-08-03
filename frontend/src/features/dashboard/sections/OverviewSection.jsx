@@ -1,7 +1,26 @@
+import { useState } from 'react';
 import { Card, Btn, Badge, MiniSparkline } from '../../../ui/primitives.jsx';
 import { TOKENS as T } from '../../../theme/tokens.js';
+import { queueScan } from '../../../services/repoService.js';
 
 export default function OverviewSection({ userName, repos, prs, metrics, showToast, setSection, setActiveRepo }) {
+  const [scanningId, setScanningId] = useState(null);
+
+  const handleScanNow = async (e, r) => {
+    e.stopPropagation();
+    if (scanningId) return;
+    setScanningId(r.id);
+    showToast(`Scanning ${r.name}…`);
+    try {
+      await queueScan(r.id, r.repoUrl);
+      showToast(`Scan queued for ${r.name}. Refresh in a bit to see results.`);
+    } catch (err) {
+      showToast(err.message || 'Failed to start scan');
+    } finally {
+      setScanningId(null);
+    }
+  };
+
   const overviewMetrics = [
     { label: 'Repos monitored', value: String(metrics.reposCount || repos.length), change: '+1 this week', up: true, data: [2, 2, 3, 3, 3, 4, Math.max(4, metrics.reposCount || repos.length)] },
     { label: 'PRs raised (30d)', value: String(prs.length), change: '+5 vs last month', up: true, data: [2, 3, 4, 3, 5, 6, prs.length] },
@@ -60,7 +79,7 @@ export default function OverviewSection({ userName, repos, prs, metrics, showToa
               </div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, borderTop: `1px solid ${T.brd}` }}>
                 <span style={{ fontSize: 11, color: T.tx4 }}>Scanned {new Date(r.lastScannedAt).toLocaleString()}</span>
-                <Btn variant="secondary" size="xs" onClick={(e) => { e.stopPropagation(); showToast(`Scanning ${r.name}…`); }}>Scan now</Btn>
+                <Btn variant="secondary" size="xs" onClick={(e) => handleScanNow(e, r)} disabled={scanningId === r.id}>{scanningId === r.id ? 'Scanning…' : 'Scan now'}</Btn>
               </div>
             </Card>
           );

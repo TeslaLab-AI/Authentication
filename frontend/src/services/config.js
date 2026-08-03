@@ -9,7 +9,7 @@ const getApiUrl = () => {
   ) {
     url = 'http://localhost:3000';
   } else {
-    url = 'https://backend-server-ai.onrender.com';
+    url = 'https://backend-tesla-ai.onrender.com';
   }
 
   url = url.replace(/\/+$/, '');
