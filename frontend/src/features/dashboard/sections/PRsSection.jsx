@@ -59,7 +59,11 @@ export default function PRsSection({ prs, approvePR }) {
                   </div>
                   {!merged ? (
                     <div style={{ display: 'flex', gap: 6 }}>
-                      <Btn variant="secondary" size="xs">View diff</Btn>
+                      {(pr.prUrl || pr.pr) && (
+                        <a href={pr.prUrl || pr.pr} target="_blank" rel="noopener noreferrer">
+                          <Btn variant="secondary" size="xs">View PR</Btn>
+                        </a>
+                      )}
                       <Btn variant="success" size="xs" onClick={() => approvePR(pr.id)}>Approve</Btn>
                     </div>
                   ) : (

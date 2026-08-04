@@ -111,6 +111,11 @@ export default function ConnectRepoPage() {
       }, 850);
       return () => clearInterval(iv);
     } catch (err) {
+      // A repo that's already connected isn't a real error — just go to the dashboard.
+      if ((err.message || '').toLowerCase().includes('already connected')) {
+        navigate('/dashboard', { replace: true });
+        return;
+      }
       setError(err.message || 'Unable to connect repository');
       setPhase('select');
     } finally {

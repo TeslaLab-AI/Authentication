@@ -163,17 +163,24 @@ export default function TeslaDashboard({ user, setUser, setGlobalError, onLogout
         }
         const normalizedRepos = backendRepos.map((repo) => normalizeRepo(repo, dashboardResponse));
 
+        const iconFor = (t) => (t === 'pr' ? '🔀' : t === 'error' ? '⚠️' : '🔍');
+        const activities = (dashboardResponse.recentActivity || []).map((a) => ({
+          ...a,
+          icon: iconFor(a.type),
+        }));
+        const pullRequests = dashboardResponse.pullRequests || [];
+
         setRepos(normalizedRepos);
-        setPrs([]);
-        setActivities([]);
+        setPrs(pullRequests);
+        setActivities(activities);
         setMetrics({
           reposCount: dashboardResponse.totalRepos || normalizedRepos.length,
-          openPRs: 0,
-          mergedPRs: 0,
+          openPRs: pullRequests.filter((p) => p.status === 'open').length,
+          mergedPRs: pullRequests.filter((p) => p.status === 'merged').length,
           avgHealth: normalizedRepos.length ? Math.round(normalizedRepos.reduce((sum, r) => sum + r.healthScore, 0) / normalizedRepos.length) : 0,
-          issuesResolved: dashboardResponse.completedScans || 0,
-          recentActivity: [],
-          activityFeed: [],
+          issuesResolved: normalizedRepos.reduce((sum, r) => sum + r.outdatedDependencies + r.securityIssues, 0),
+          recentActivity: activities,
+          activityFeed: activities,
         });
         setActiveRepo(normalizedRepos[0] || null);
       } catch (error) {
@@ -327,7 +334,7 @@ export default function TeslaDashboard({ user, setUser, setGlobalError, onLogout
               Back
             </button>
           )}
-          {profile && !profile.isVerified && (
+          {profile && !profile.isVerified && profile.email && (
             <div style={{ background: T.al, border: `1px solid ${T.a}`, borderRadius: 12, padding: '10px 16px', marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ fontSize: 16 }}>⚠️</span>

@@ -3,11 +3,23 @@ import { Card, Btn, Badge } from '../../../ui/primitives.jsx';
 import { TOKENS as T } from '../../../theme/tokens.js';
 import { sendOtp, verifyOtp } from '../../../services/authService.js';
 
+const loadPref = (key, fallback) => {
+  try {
+    const v = localStorage.getItem(`tesla_setting_${key}`);
+    if (v === null) return fallback;
+    return JSON.parse(v);
+  } catch {
+    return fallback;
+  }
+};
+
 export default function SettingsSection({ showToast, profile }) {
-  const [scanSchedule, setScanSchedule] = useState('daily');
-  const [autoPR, setAutoPR] = useState(true);
-  const [emailNotifs, setEmailNotifs] = useState(true);
-  const [threshold, setThreshold] = useState('high');
+  const [scanSchedule, setScanSchedule] = useState(() => loadPref('scanSchedule', 'daily'));
+  const [autoPR, setAutoPR] = useState(() => loadPref('autoPR', true));
+  const [emailNotifs, setEmailNotifs] = useState(() => loadPref('emailNotifs', true));
+  const [threshold, setThreshold] = useState(() => loadPref('threshold', 'high'));
+
+  const hasEmail = !!(profile && profile.email);
 
   const [verified, setVerified] = useState(profile?.isVerified);
   const [verifying, setVerifying] = useState(false);
@@ -65,12 +77,20 @@ export default function SettingsSection({ showToast, profile }) {
                 <div style={{ fontSize: 13, color: T.tx2 }}>{profile.name}</div>
                 <div style={{ fontSize: 12, color: T.tx3, marginTop: 2 }}>{profile.email}</div>
               </div>
-              <Badge variant={verified ? 'green' : 'amber'}>
-                {verified ? '✓ Verified' : '⚠️ Unverified'}
+              <Badge variant={verified ? 'green' : hasEmail ? 'amber' : 'default'}>
+                {verified ? '✓ Verified' : hasEmail ? '⚠️ Unverified' : 'GitHub account'}
               </Badge>
             </div>
 
-            {!verified && (
+            {!verified && !hasEmail && (
+              <div style={{ marginTop: 12, borderTop: `1px solid ${T.brd}`, paddingTop: 12 }}>
+                <span style={{ fontSize: 12, color: T.tx3 }}>
+                  This account signed in with GitHub and has no email on file, so email verification isn&apos;t required.
+                </span>
+              </div>
+            )}
+
+            {!verified && hasEmail && (
               <div style={{ marginTop: 12, borderTop: `1px solid ${T.brd}`, paddingTop: 12 }}>
                 {!verifying ? (
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -170,7 +190,17 @@ export default function SettingsSection({ showToast, profile }) {
           </div>
         </Card>
 
-        <Btn onClick={() => showToast('Settings saved successfully')} style={{ marginTop: 20, width: '100%', justifyContent: 'center' }}>
+        <Btn onClick={() => {
+          try {
+            localStorage.setItem('tesla_setting_scanSchedule', JSON.stringify(scanSchedule));
+            localStorage.setItem('tesla_setting_autoPR', JSON.stringify(autoPR));
+            localStorage.setItem('tesla_setting_emailNotifs', JSON.stringify(emailNotifs));
+            localStorage.setItem('tesla_setting_threshold', JSON.stringify(threshold));
+            showToast('Settings saved');
+          } catch {
+            showToast('Could not save settings in this browser');
+          }
+        }} style={{ marginTop: 20, width: '100%', justifyContent: 'center' }}>
           Save settings
         </Btn>
       </div>
