@@ -78,61 +78,49 @@ export default function HealthSection({ repos, repo, setRepo, showToast }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 mb-3.5">
         <Card>
           <div style={{ fontSize: 13, fontWeight: 600, color: T.tx2, marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span>Security vulnerabilities ({repo.sec})</span>
+            <span>Security ({repo.sec})</span>
             {repo.sec > 0 && <Badge variant="red" size="xs">Action required</Badge>}
+            {repo.security?.risk && repo.sec === 0 && <Badge variant="green" size="xs">{String(repo.security.risk).toUpperCase()} risk</Badge>}
           </div>
-          {repo.sec === 0 ? (
+          {!repo.hasAgentData ? (
+            <div style={{ color: T.tx3, fontSize: 13, padding: '12px 0' }}>No security scan data yet. Run a scan to analyze this repo.</div>
+          ) : repo.sec === 0 ? (
             <div style={{ color: T.g, fontSize: 13, padding: '12px 0', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span>✓</span> No vulnerabilities detected
+              <span>✓</span> {repo.security?.summary || 'No vulnerabilities detected'}
             </div>
           ) : (
-            <>
-              <div style={{ padding: '10px 0', borderBottom: `1px solid ${T.brd}` }}>
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
-                  <Badge variant="red" size="xs">HIGH</Badge>
-                  <span style={{ fontSize: 13, fontWeight: 600, fontFamily: "'JetBrains Mono', monospace" }}>lodash 4.17.20</span>
-                </div>
-                <div style={{ fontSize: 12, color: T.tx3, marginBottom: 8 }}>Prototype pollution via zipObjectDeep. Fix: upgrade to 4.17.21.</div>
-                <Btn variant="secondary" size="xs" onClick={() => showToast('Fix PR raised for lodash')}>Fix with AI</Btn>
+            <div style={{ padding: '4px 0' }}>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+                {repo.security.cveCount > 0 && <Badge variant="red" size="xs">{repo.security.cveCount} CVE{repo.security.cveCount > 1 ? 's' : ''}</Badge>}
+                {repo.security.secretCount > 0 && <Badge variant="red" size="xs">{repo.security.secretCount} secret{repo.security.secretCount > 1 ? 's' : ''}</Badge>}
+                {repo.security.patternCount > 0 && <Badge variant="amber" size="xs">{repo.security.patternCount} risky pattern{repo.security.patternCount > 1 ? 's' : ''}</Badge>}
               </div>
-              {repo.sec > 1 && (
-                <div style={{ padding: '10px 0' }}>
-                  <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
-                    <Badge variant="amber" size="xs">MEDIUM</Badge>
-                    <span style={{ fontSize: 13, fontWeight: 600, fontFamily: "'JetBrains Mono', monospace" }}>axios 1.4.0</span>
-                  </div>
-                  <div style={{ fontSize: 12, color: T.tx3, marginBottom: 8 }}>SSRF — Server-Side Request Forgery in HTTP adapter. Fix: upgrade to ≥1.6.0.</div>
-                  <Btn variant="secondary" size="xs" onClick={() => showToast('Fix PR raised for axios')}>Fix with AI</Btn>
-                </div>
+              {repo.security.summary && (
+                <div style={{ fontSize: 12, color: T.tx3 }}>{repo.security.summary}</div>
               )}
-            </>
+            </div>
           )}
         </Card>
 
         <Card>
-          <div style={{ fontSize: 13, fontWeight: 600, color: T.tx2, marginBottom: 12 }}>Outdated dependencies ({repo.deps})</div>
-          {repo.deps === 0 ? (
-            <div style={{ color: T.g, fontSize: 13, padding: '12px 0' }}>✓ All dependencies up to date</div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: T.tx2, marginBottom: 12 }}>Dependency upgrades ({repo.deps})</div>
+          {!repo.hasAgentData ? (
+            <div style={{ color: T.tx3, fontSize: 13, padding: '12px 0' }}>No dependency data yet. Detected {repo.totalPackages} package{repo.totalPackages === 1 ? '' : 's'} in this repo.</div>
+          ) : repo.deps === 0 ? (
+            <div style={{ color: T.g, fontSize: 13, padding: '12px 0' }}>✓ {repo.agentMessage || 'All dependencies up to date'}</div>
           ) : (
             <>
-              {[
-                { pkg: 'react-query', cur: '4.29.0', new: '5.28.0', type: 'Major' },
-                { pkg: 'tailwindcss', cur: '3.3.0', new: '3.4.1', type: 'Minor' },
-                { pkg: 'typescript', cur: '5.0.4', new: '5.4.5', type: 'Patch' },
-              ]
-                .slice(0, Math.min(3, repo.deps))
-                .map((d) => (
-                  <div key={d.pkg} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: `1px solid ${T.brd}` }}>
-                    <div>
-                      <span style={{ fontSize: 12, fontFamily: "'JetBrains Mono', monospace", color: T.tx1 }}>{d.pkg}</span>
-                      <div style={{ fontSize: 11, color: T.tx3, marginTop: 2 }}>{d.cur} → {d.new}</div>
-                    </div>
-                    <Badge variant={d.type === 'Major' ? 'amber' : d.type === 'Minor' ? 'blue' : 'default'} size="xs">{d.type}</Badge>
-                  </div>
-                ))}
-              <Btn variant="success" size="sm" onClick={() => showToast('Dependency upgrade PRs raised')} style={{ marginTop: 12, width: '100%', justifyContent: 'center' }}>
-                Fix all with AI
-              </Btn>
+              {repo.packagesUpgraded.map((pkg, i) => (
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: `1px solid ${T.brd}` }}>
+                  <span style={{ fontSize: 12, fontFamily: "'JetBrains Mono', monospace", color: T.tx1 }}>{typeof pkg === 'string' ? pkg : pkg.package || JSON.stringify(pkg)}</span>
+                  <Badge variant="green" size="xs">upgraded</Badge>
+                </div>
+              ))}
+              {repo.prUrl && (
+                <a href={repo.prUrl} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-block', marginTop: 12 }}>
+                  <Btn variant="success" size="sm" style={{ width: '100%', justifyContent: 'center' }}>View pull request →</Btn>
+                </a>
+              )}
             </>
           )}
         </Card>
@@ -140,44 +128,44 @@ export default function HealthSection({ repos, repo, setRepo, showToast }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
         <Card>
-          <div style={{ fontSize: 13, fontWeight: 600, color: T.tx2, marginBottom: 12 }}>Lint issues ({repo.lint})</div>
-          {repo.lint > 0 ? (
-            <>
-              {[
-                { file: 'src/components/Auth.tsx', line: 34, rule: 'no-unused-vars', msg: "'userRole' is defined but never used" },
-                { file: 'src/pages/dashboard.tsx', line: 12, rule: 'react-hooks/exhaustive-deps', msg: 'useEffect missing dependency array' },
-                { file: 'src/utils/api.ts', line: 89, rule: 'no-console', msg: 'Unexpected console.log statement' },
-              ]
-                .slice(0, Math.min(3, repo.lint))
-                .map((l, i) => (
-                  <div key={i} style={{ padding: '8px 0', borderBottom: `1px solid ${T.brd}` }}>
-                    <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: T.tx4 }}>{l.file}:{l.line}</div>
-                    <div style={{ fontSize: 12, color: T.tx1, fontWeight: 500, marginTop: 2 }}>{l.msg}</div>
-                    <div style={{ fontSize: 11, color: T.tx4 }}>{l.rule}</div>
-                  </div>
-                ))}
-              {repo.lint > 3 && <div style={{ fontSize: 12, color: T.tx3, marginTop: 8 }}>+{repo.lint - 3} more lint issues…</div>}
-            </>
-          ) : (
-            <div style={{ color: T.g, fontSize: 13, padding: '12px 0' }}>✓ No lint issues</div>
-          )}
-        </Card>
-
-        <Card>
-          <div style={{ fontSize: 13, fontWeight: 600, color: T.tx2, marginBottom: 12 }}>Build & test status</div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: T.tx2, marginBottom: 12 }}>Project details</div>
           {[
-            ['Build status', repo.build ? 'Passing' : 'Failing', repo.build],
-            ['Test coverage', '74%', true],
-            ['Tests run', '47/47 passed', repo.build],
-            ['Last build', '3 min ago', true],
-            ['CI pipeline', 'GitHub Actions', true],
+            ['Language', repo.language || 'Unknown', true],
+            ['Framework', repo.framework || 'Unknown', true],
+            ['Dependencies detected', String(repo.totalPackages ?? 0), true],
+            ['Repository', repo.name, true],
             ['Branch', repo.branch, true],
           ].map(([l, v, ok]) => (
             <div key={l} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', borderBottom: `1px solid ${T.brd}`, fontSize: 13 }}>
               <span style={{ color: T.tx3 }}>{l}</span>
-              <span style={{ fontWeight: 600, color: ok ? T.g : T.r, fontFamily: l === 'Branch' || l === 'CI pipeline' ? "'JetBrains Mono', monospace" : 'inherit', fontSize: l === 'Branch' || l === 'CI pipeline' ? 12 : 13 }}>{v}</span>
+              <span style={{ fontWeight: 600, color: ok ? T.tx1 : T.r, fontFamily: (l === 'Branch' || l === 'Language' || l === 'Framework') ? "'JetBrains Mono', monospace" : 'inherit', fontSize: 12 }}>{v}</span>
             </div>
           ))}
+        </Card>
+
+        <Card>
+          <div style={{ fontSize: 13, fontWeight: 600, color: T.tx2, marginBottom: 12 }}>Build & test status</div>
+          {!repo.hasAgentData ? (
+            <div style={{ color: T.tx3, fontSize: 13, padding: '12px 0' }}>No test run recorded yet. The AI agent runs tests when it applies changes.</div>
+          ) : (
+            [
+              ['Agent status', repo.agentStatus || 'unknown', repo.agentStatus === 'success'],
+              ['Build / tests', repo.testResults.total > 0 ? (repo.testResults.status === 'pass' ? 'Passing' : 'Failing') : (repo.buildPassing ? 'Passing' : 'Failing'), repo.buildPassing],
+              ['Tests run', repo.testResults.total > 0 ? `${repo.testResults.passed}/${repo.testResults.total} passed` : 'No tests run', repo.testResults.failed === 0],
+              ['Packages upgraded', String(repo.outdatedDependencies), true],
+              ['Branch', repo.branch, true],
+            ].map(([l, v, ok]) => (
+              <div key={l} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '7px 0', borderBottom: `1px solid ${T.brd}`, fontSize: 13 }}>
+                <span style={{ color: T.tx3 }}>{l}</span>
+                <span style={{ fontWeight: 600, color: ok ? T.g : T.r, fontFamily: l === 'Branch' ? "'JetBrains Mono', monospace" : 'inherit', fontSize: l === 'Branch' ? 12 : 13 }}>{v}</span>
+              </div>
+            ))
+          )}
+          {repo.reviewReasoning && (
+            <div style={{ marginTop: 12, padding: '10px', background: T.bg3, borderRadius: 8, fontSize: 12, color: T.tx3 }}>
+              <span style={{ fontWeight: 600, color: T.tx2 }}>AI review: </span>{repo.reviewReasoning}
+            </div>
+          )}
         </Card>
       </div>
     </div>

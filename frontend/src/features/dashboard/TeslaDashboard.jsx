@@ -13,6 +13,113 @@ import HealthSection from './sections/HealthSection.jsx';
 import ActivitySection from './sections/ActivitySection.jsx';
 import SettingsSection from './sections/SettingsSection.jsx';
 
+// Turn a backend repository (with its latest scan + agentResult) into the
+// shape the dashboard UI consumes. All values are derived from real scan
+// data; when the agent hasn't produced detailed findings yet, we fall back
+// to safe "no data" values instead of fabricated numbers.
+function normalizeRepo(repo, dashboardResponse) {
+  const repoName = repo.repoUrl?.split('/').slice(-1)[0] || repo.name || `repo-${repo.id}`;
+
+  const latestScan = (repo.scans && repo.scans[0]) || null;
+  const result = latestScan?.result || {};
+  const agent = result.agentResult || null;
+
+  const scanAt =
+    latestScan?.createdAt ||
+    dashboardResponse.latestScan?.createdAt ||
+    repo.createdAt ||
+    new Date().toISOString();
+
+  // Dependencies: worker stores them under result.dependencies; the simple
+  // connect scan stores them under result.packages.
+  const depObj = result.dependencies || result.packages || {};
+  const totalPackages =
+    result.metadata?.totalPackages ??
+    result.totalPackages ??
+    Object.keys(depObj).length;
+
+  const security = agent?.security || {};
+  const testResults = agent?.test_results || {};
+  const packagesUpgraded = agent?.packages_upgraded || [];
+
+  const securityIssues =
+    (security.cve_count || 0) +
+    (security.secret_count || 0) +
+    (security.pattern_count || 0);
+  const outdatedDependencies = packagesUpgraded.length;
+  const testsFailed = testResults.failed || 0;
+
+  // Build passing: derive from agent test results / status when available.
+  let buildPassing;
+  if (agent && Object.keys(testResults).length) {
+    buildPassing = testResults.status === 'pass' && testsFailed === 0;
+  } else if (agent) {
+    buildPassing = agent.status === 'success';
+  } else {
+    buildPassing = (latestScan?.status || repo.status) === 'COMPLETED';
+  }
+
+  // Health score derived from real signals.
+  let healthScore = 100;
+  healthScore -= securityIssues * 15;
+  healthScore -= outdatedDependencies * 5;
+  healthScore -= testsFailed * 10;
+  if (!buildPassing) healthScore -= 25;
+  if ((latestScan?.status || repo.status) === 'SCANNING') healthScore = 60;
+  if (!latestScan) healthScore = repo.status === 'COMPLETED' ? 90 : 65;
+  healthScore = Math.max(0, Math.min(100, healthScore));
+
+  const language = repo.language || repo.framework || result.repository?.language || 'Unknown';
+
+  return {
+    id: repo.id,
+    name: repoName,
+    repoUrl: repo.repoUrl,
+    framework: repo.framework || 'Unknown',
+    language,
+    defaultBranch: 'main',
+    branch: 'main',
+    health: healthScore,
+    healthScore,
+    scan: latestScan?.status || repo.status || 'Pending',
+    lastScannedAt: scanAt,
+
+    // real derived metrics (used by Overview badges + Health rings)
+    securityIssues,
+    outdatedDependencies,
+    lintIssues: 0, // no lint data source in the current pipeline
+    buildPassing,
+    build: buildPassing,
+    sec: securityIssues,
+    deps: outdatedDependencies,
+    lint: 0,
+
+    // raw real data for the Health detail view
+    totalPackages,
+    dependencies: depObj,
+    hasAgentData: !!agent,
+    agentStatus: agent?.status || null,
+    agentMessage: agent?.message || null,
+    security: {
+      cveCount: security.cve_count || 0,
+      secretCount: security.secret_count || 0,
+      patternCount: security.pattern_count || 0,
+      risk: security.risk || null,
+      summary: security.summary || null,
+      approved: security.approved,
+    },
+    testResults: {
+      status: testResults.status || null,
+      total: testResults.total || 0,
+      passed: testResults.passed || 0,
+      failed: testResults.failed || 0,
+    },
+    packagesUpgraded,
+    prUrl: agent?.pr_url || null,
+    reviewReasoning: agent?.review?.reasoning || null,
+  };
+}
+
 export default function TeslaDashboard({ user, setUser, setGlobalError, onLogout }) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -54,32 +161,7 @@ export default function TeslaDashboard({ user, setUser, setGlobalError, onLogout
           navigate('/connect');
           return;
         }
-        const normalizedRepos = backendRepos.map((repo) => {
-          const repoName = repo.repoUrl?.split('/').slice(-1)[0] || repo.name || `repo-${repo.id}`;
-          const scanAt = dashboardResponse.latestScan?.createdAt || repo.createdAt || new Date().toISOString();
-          const healthScore = repo.status === 'COMPLETED' ? 82 : repo.status === 'SCANNING' ? 60 : 68;
-          return {
-            id: repo.id,
-            name: repoName,
-            repoUrl: repo.repoUrl,
-            framework: repo.framework || 'Unknown',
-            language: repo.framework || 'Unknown',
-            defaultBranch: 'main',
-            branch: 'main',
-            health: healthScore,
-            healthScore,
-            scan: repo.status || 'Pending',
-            lastScannedAt: scanAt,
-            securityIssues: 0,
-            outdatedDependencies: 0,
-            lintIssues: 0,
-            buildPassing: true,
-            build: true,
-            sec: 0,
-            deps: 0,
-            lint: 0,
-          };
-        });
+        const normalizedRepos = backendRepos.map((repo) => normalizeRepo(repo, dashboardResponse));
 
         setRepos(normalizedRepos);
         setPrs([]);
