@@ -186,10 +186,22 @@ export default function LoginPage({ setUser, setGlobalError }) {
 
     try {
       if (mode === 'login') {
-        const response = await login({ email, password });
-        saveToken(response.token);
-        setUser(response.user);
-        navigate('/connect', { replace: true });
+        try {
+          const response = await login({ email, password });
+          saveToken(response.token);
+          setUser(response.user);
+          navigate('/connect', { replace: true });
+        } catch (loginErr) {
+          // Unverified account: send a fresh code and route to the OTP screen
+          // instead of dead-ending on "Please verify your email first".
+          if ((loginErr.message || '').toLowerCase().includes('verify')) {
+            await sendOtp(email);
+            handleSetMode('signup-otp');
+            setSuccessMsg('Your email isn\'t verified yet. A verification code has been sent to your email.');
+          } else {
+            throw loginErr;
+          }
+        }
       } else if (mode === 'signup') {
         try {
           const registerclicked = await register({ name, email, password });
