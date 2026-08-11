@@ -13,6 +13,7 @@ const NAV_ITEMS = [
 
 export default function Navbar({ user, onLogout }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const isAuthenticated = Boolean(getToken());
@@ -59,14 +60,41 @@ export default function Navbar({ user, onLogout }) {
           <>
             <Dot color={T.g} pulse />
             <span style={{ fontSize: 12, color: T.tx3 }}>4 repos active</span>
-            <button
-              type="button"
-              onClick={onLogout}
-              title="Logout"
-              style={{ width: 32, height: 32, borderRadius: '50%', background: `linear-gradient(135deg, ${T.p}, ${T.pm})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 600, color: '#fff', cursor: 'pointer', border: `2px solid ${T.brd2}` }}
-            >
-              {displayName[0]?.toUpperCase()}
-            </button>
+            <div style={{ position: 'relative' }}>
+              <button
+                type="button"
+                onClick={() => setIsProfileOpen((v) => !v)}
+                title={displayName}
+                style={{ width: 32, height: 32, borderRadius: '50%', background: `linear-gradient(135deg, ${T.p}, ${T.pm})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 600, color: '#fff', cursor: 'pointer', border: `2px solid ${T.brd2}` }}
+              >
+                {displayName[0]?.toUpperCase()}
+              </button>
+              <AnimatePresence>
+                {isProfileOpen && (
+                  <>
+                    <div onClick={() => setIsProfileOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 90 }} />
+                    <motion.div
+                      initial={{ opacity: 0, y: -6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -6 }}
+                      style={{ position: 'absolute', top: 42, right: 0, minWidth: 180, background: 'rgba(9,9,11,0.98)', backdropFilter: 'blur(20px)', border: `1px solid ${T.brd2}`, borderRadius: 12, padding: 8, zIndex: 100, boxShadow: '0 8px 32px rgba(0,0,0,.5)' }}
+                    >
+                      <div style={{ padding: '6px 10px 10px', borderBottom: `1px solid ${T.brd}` }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: T.tx1 }}>{displayName}</div>
+                        <div style={{ fontSize: 11, color: T.tx3, marginTop: 2 }}>Signed in</div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => { setIsProfileOpen(false); onLogout(); }}
+                        style={{ width: '100%', marginTop: 8, padding: '8px 10px', borderRadius: 8, border: `1px solid ${T.r}`, background: T.rl, color: '#FCA5A5', fontSize: 13, fontWeight: 500, cursor: 'pointer', textAlign: 'left', fontFamily: "'DM Sans', sans-serif" }}
+                      >
+                        Logout
+                      </button>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
           </>
         ) : (
           <span style={{ fontSize: 13, color: T.tx3 }}>← Navigate above</span>
