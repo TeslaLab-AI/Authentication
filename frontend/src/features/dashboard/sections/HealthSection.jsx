@@ -150,7 +150,7 @@ export default function HealthSection({ repos, repo, setRepo, showToast }) {
           ) : (
             [
               ['Agent status', repo.agentStatus || 'unknown', repo.agentStatus === 'success'],
-              ['Build / tests', repo.testResults.total > 0 ? (repo.testResults.status === 'pass' ? 'Passing' : 'Failing') : (repo.buildPassing ? 'Passing' : 'Failing'), repo.buildPassing],
+              ['Build / tests', repo.testResults.total > 0 ? (repo.testResults.status === 'pass' ? 'Passing' : 'Failing') : 'No test suite', repo.testResults.total > 0 ? repo.buildPassing : true],
               ['Tests run', repo.testResults.total > 0 ? `${repo.testResults.passed}/${repo.testResults.total} passed` : 'No tests run', repo.testResults.failed === 0],
               ['Packages upgraded', String(repo.outdatedDependencies), true],
               ['Branch', repo.branch, true],

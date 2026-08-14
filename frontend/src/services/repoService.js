@@ -14,3 +14,8 @@ export async function queueScan(repositoryId, repoUrl) {
   const response = await api.post('repos/queue-scan', { repositoryId, repoUrl });
   return response.data;
 }
+
+export async function deleteRepo(id) {
+  const response = await api.delete(`repos/${id}`);
+  return response.data;
+}
