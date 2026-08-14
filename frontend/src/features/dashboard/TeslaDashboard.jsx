@@ -217,8 +217,9 @@ export default function TeslaDashboard({ user, setUser, setGlobalError, onLogout
         });
         setActiveRepo(normalizedRepos[0] || null);
       } catch (error) {
-        setGlobalError(error.message);
-        if (error.message.toLowerCase().includes('token')) {
+        const msg = error?.message || 'Something went wrong loading the dashboard';
+        setGlobalError(msg);
+        if (msg.toLowerCase().includes('token')) {
           clearToken();
           setUser(null);
           navigate('/login');
