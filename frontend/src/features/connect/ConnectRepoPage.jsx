@@ -66,10 +66,10 @@ export default function ConnectRepoPage() {
     { label: 'Calculating initial health score…' },
   ];
 
-  const filteredRepos = (Array.isArray(repos) ? repos : []).filter((repo) => {
+  const filteredRepos = repos.filter((repo) => {
     const query = repoFilter.toLowerCase().trim();
     return (
-      (repo.name || '').toLowerCase().includes(query) ||
+      repo.name.toLowerCase().includes(query) ||
       (repo.description && repo.description.toLowerCase().includes(query)) ||
       (repo.language && repo.language.toLowerCase().includes(query))
     );
@@ -111,11 +111,9 @@ export default function ConnectRepoPage() {
       }, 850);
       return () => clearInterval(iv);
     } catch (err) {
-      // Already-connected isn't a real failure — stay on the page with a clear
-      // message so the user can pick a different repo (instead of a jarring jump).
+      // A repo that's already connected isn't a real error — just go to the dashboard.
       if ((err.message || '').toLowerCase().includes('already connected')) {
-        setError(`"${selected?.name || 'That repository'}" is already connected. Pick another repo, or open the Dashboard to view it.`);
-        setPhase('select');
+        navigate('/dashboard', { replace: true });
         return;
       }
       setError(err.message || 'Unable to connect repository');

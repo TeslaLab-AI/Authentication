@@ -3,7 +3,7 @@ import { Card, Btn, Badge, MiniSparkline } from '../../../ui/primitives.jsx';
 import { TOKENS as T } from '../../../theme/tokens.js';
 import { queueScan } from '../../../services/repoService.js';
 
-export default function OverviewSection({ userName, repos, prs, metrics, showToast, setSection, setActiveRepo, onDeleteRepo }) {
+export default function OverviewSection({ userName, repos, prs, metrics, showToast, setSection, setActiveRepo }) {
   const [scanningId, setScanningId] = useState(null);
 
   const handleScanNow = async (e, r) => {
@@ -79,19 +79,7 @@ export default function OverviewSection({ userName, repos, prs, metrics, showToa
               </div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, borderTop: `1px solid ${T.brd}` }}>
                 <span style={{ fontSize: 11, color: T.tx4 }}>Scanned {new Date(r.lastScannedAt).toLocaleString()}</span>
-                <div style={{ display: 'flex', gap: 6 }}>
-                  <Btn variant="secondary" size="xs" onClick={(e) => handleScanNow(e, r)} disabled={scanningId === r.id}>{scanningId === r.id ? 'Scanning…' : 'Scan now'}</Btn>
-                  {onDeleteRepo && (
-                    <button
-                      type="button"
-                      title="Remove repository"
-                      onClick={(e) => { e.stopPropagation(); onDeleteRepo(r); }}
-                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 26, height: 26, borderRadius: 7, border: `1px solid ${T.brd2}`, background: T.bg3, color: T.tx3, cursor: 'pointer', flexShrink: 0 }}
-                    >
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                    </button>
-                  )}
-                </div>
+                <Btn variant="secondary" size="xs" onClick={(e) => handleScanNow(e, r)} disabled={scanningId === r.id}>{scanningId === r.id ? 'Scanning…' : 'Scan now'}</Btn>
               </div>
             </Card>
           );

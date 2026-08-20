@@ -2,13 +2,27 @@ import api from './axiosInstance.js';
 import { apiBaseUrl } from './config.js';
 
 export async function login(payload) {
-  const response = await api.post('auth/login', payload);
-  return response.data;
+  try {
+    console.log('authService.login payload:', payload);
+    const response = await api.post('auth/login', payload);
+    console.log('authService.login response:', response.data);
+    return response.data;
+  } catch (err) {
+    console.error('authService.login error response:', err.response?.data || err.message);
+    throw err;
+  }
 }
 
 export async function register(payload) {
-  const response = await api.post('auth/register', payload);
-  return response.data;
+  try {
+    console.log('authService.register payload:', payload);
+    const response = await api.post('auth/register', payload);
+    console.log('authService.register response:', response.data);
+    return response.data;
+  } catch (err) {
+    console.error('authService.register error response:', err.response?.data || err.message);
+    throw err;
+  }
 }
 
 export async function sendOtp(email) {

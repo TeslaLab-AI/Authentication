@@ -1,6 +1,15 @@
 import { apiBaseUrl } from './config.js';
 
 const baseUrl = apiBaseUrl;
+console.log(
+  "VITE_API_URL:",
+  import.meta.env.VITE_API_URL
+);
+
+console.log(
+  "BASE_URL:",
+  baseUrl
+);
 
 async function request(endpoint, method = 'GET', body = null, token = null) {
   const headers = { 'Content-Type': 'application/json' };

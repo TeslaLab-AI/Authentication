@@ -5,7 +5,6 @@ import { clearToken, getToken } from '../../services/authService.js';
 import { getProfile } from '../../services/userService.js';
 import { getDashboard } from '../../services/dashboardService.js';
 import { approvePR as approvePRApi } from '../../services/prService.js';
-import { deleteRepo as deleteRepoApi } from '../../services/repoService.js';
 import { Btn, Dot } from '../../ui/primitives.jsx';
 import { TOKENS as T } from '../../theme/tokens.js';
 import OverviewSection from './sections/OverviewSection.jsx';
@@ -50,26 +49,22 @@ function normalizeRepo(repo, dashboardResponse) {
   const outdatedDependencies = packagesUpgraded.length;
   const testsFailed = testResults.failed || 0;
 
-  // Build passing: only an actual test FAILURE (or the agent's tests_failed
-  // status) counts as failing. "no_tests" / "pass" / a successful agent run are
-  // all fine — a repo without a test suite isn't a broken build.
+  // Build passing: derive from agent test results / status when available.
   let buildPassing;
-  if (agent) {
-    buildPassing = testResults.status !== 'fail'
-      && testsFailed === 0
-      && agent.status !== 'tests_failed';
+  if (agent && Object.keys(testResults).length) {
+    buildPassing = testResults.status === 'pass' && testsFailed === 0;
+  } else if (agent) {
+    buildPassing = agent.status === 'success';
   } else {
     buildPassing = (latestScan?.status || repo.status) === 'COMPLETED';
   }
 
-  // Health score derived from real signals. Penalties are capped so a repo with
-  // lots of pre-existing CVEs reads as "needs attention" rather than cratering to
-  // 0/critical — the CVEs weren't introduced by the agent's upgrade.
+  // Health score derived from real signals.
   let healthScore = 100;
-  healthScore -= Math.min(securityIssues * 4, 45);
-  healthScore -= Math.min(outdatedDependencies * 3, 20);
-  healthScore -= Math.min(testsFailed * 10, 30);
-  if (!buildPassing) healthScore -= 20;
+  healthScore -= securityIssues * 15;
+  healthScore -= outdatedDependencies * 5;
+  healthScore -= testsFailed * 10;
+  if (!buildPassing) healthScore -= 25;
   if ((latestScan?.status || repo.status) === 'SCANNING') healthScore = 60;
   if (!latestScan) healthScore = repo.status === 'COMPLETED' ? 90 : 65;
   healthScore = Math.max(0, Math.min(100, healthScore));
@@ -125,27 +120,6 @@ function normalizeRepo(repo, dashboardResponse) {
   };
 }
 
-// Persist which PRs the user has approved so the state survives reload/re-login.
-const APPROVED_PRS_KEY = 'tesla_approved_prs';
-function loadApprovedPRs() {
-  try {
-    return JSON.parse(localStorage.getItem(APPROVED_PRS_KEY) || '[]').map(String);
-  } catch {
-    return [];
-  }
-}
-function saveApprovedPR(id) {
-  try {
-    const ids = loadApprovedPRs();
-    if (!ids.includes(String(id))) {
-      ids.push(String(id));
-      localStorage.setItem(APPROVED_PRS_KEY, JSON.stringify(ids));
-    }
-  } catch {
-    /* ignore */
-  }
-}
-
 export default function TeslaDashboard({ user, setUser, setGlobalError, onLogout }) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -196,20 +170,13 @@ export default function TeslaDashboard({ user, setUser, setGlobalError, onLogout
         }));
         const pullRequests = dashboardResponse.pullRequests || [];
 
-        // Remember which PRs the user already approved so they don't get
-        // re-prompted after reload/re-login.
-        const approvedIds = loadApprovedPRs();
-        const prsWithState = pullRequests.map((p) =>
-          approvedIds.includes(String(p.id)) ? { ...p, status: 'merged' } : p
-        );
-
         setRepos(normalizedRepos);
-        setPrs(prsWithState);
+        setPrs(pullRequests);
         setActivities(activities);
         setMetrics({
           reposCount: dashboardResponse.totalRepos || normalizedRepos.length,
-          openPRs: prsWithState.filter((p) => p.status === 'open').length,
-          mergedPRs: prsWithState.filter((p) => p.status === 'merged').length,
+          openPRs: pullRequests.filter((p) => p.status === 'open').length,
+          mergedPRs: pullRequests.filter((p) => p.status === 'merged').length,
           avgHealth: normalizedRepos.length ? Math.round(normalizedRepos.reduce((sum, r) => sum + r.healthScore, 0) / normalizedRepos.length) : 0,
           issuesResolved: normalizedRepos.reduce((sum, r) => sum + r.outdatedDependencies + r.securityIssues, 0),
           recentActivity: activities,
@@ -217,9 +184,8 @@ export default function TeslaDashboard({ user, setUser, setGlobalError, onLogout
         });
         setActiveRepo(normalizedRepos[0] || null);
       } catch (error) {
-        const msg = error?.message || 'Something went wrong loading the dashboard';
-        setGlobalError(msg);
-        if (msg.toLowerCase().includes('token')) {
+        setGlobalError(error.message);
+        if (error.message.toLowerCase().includes('token')) {
           clearToken();
           setUser(null);
           navigate('/login');
@@ -234,26 +200,12 @@ export default function TeslaDashboard({ user, setUser, setGlobalError, onLogout
 
   const approvePR = async (id) => {
     try {
-      await approvePRApi(id);
-      saveApprovedPR(id);
-      setPrs((prev) => prev.map((p) => (String(p._id || p.id) === String(id) ? { ...p, status: 'merged' } : p)));
-      showToast('PR marked as approved — the dashboard will remember this.');
+      const response = await approvePRApi(id);
+      const mergedId = response.pr?._id || response.pr?.id || id;
+      setPrs((prev) => prev.map((p) => (String(p._id || p.id) === String(mergedId) ? { ...p, status: 'merged' } : p)));
+      showToast('PR approved and merged to main branch');
     } catch (error) {
       setGlobalError(error.message);
-    }
-  };
-
-  const handleDeleteRepo = async (repo) => {
-    if (!repo) return;
-    const ok = window.confirm(`Remove "${repo.name}" from monitoring? This deletes its scans too. (It does NOT touch your GitHub repo.)`);
-    if (!ok) return;
-    try {
-      await deleteRepoApi(repo.id);
-      setRepos((prev) => prev.filter((r) => r.id !== repo.id));
-      setActiveRepo((prev) => (prev?.id === repo.id ? null : prev));
-      showToast(`Removed ${repo.name}`);
-    } catch (error) {
-      showToast(error.message || 'Failed to remove repository');
     }
   };
 
@@ -396,7 +348,7 @@ export default function TeslaDashboard({ user, setUser, setGlobalError, onLogout
 
           <AnimatePresence mode="wait">
             <motion.div key={section} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }}>
-              {section === 'overview' && <OverviewSection userName={displayName} repos={repos} prs={prs} metrics={metrics} showToast={showToast} setSection={setSection} setActiveRepo={setActiveRepo} onDeleteRepo={handleDeleteRepo} />}
+              {section === 'overview' && <OverviewSection userName={displayName} repos={repos} prs={prs} metrics={metrics} showToast={showToast} setSection={setSection} setActiveRepo={setActiveRepo} />}
               {section === 'prs' && <PRsSection prs={prs} approvePR={approvePR} />}
               {section === 'health' && <HealthSection repos={repos} repo={activeRepo} setRepo={setActiveRepo} showToast={showToast} />}
               {section === 'activity' && <ActivitySection activities={activities} />}
